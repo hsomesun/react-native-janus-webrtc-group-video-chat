@@ -131,6 +131,7 @@ var Janus = require('./janus.nojquery.js');
                                                 var list = msg["publishers"];
                                                 Janus.debug("Got a list of available publishers/feeds:");
                                                 Janus.debug(list);
+
                                                 for(var f in list) {
                                                     var id = list[f]["id"];
                                                     var display = list[f]["display"];
@@ -199,7 +200,7 @@ var Janus = require('./janus.nojquery.js');
 
                                     container.setState({selfViewSrc: stream.toURL()});
                                     container.setState({status: 'ready', info: 'Please enter or create room ID'});
-
+                                    sfutest.changeLocalCamera()
                                 },
                                 onremotestream: function(stream) {
                                     // The publisher stream is sendonly, we don't expect anything here

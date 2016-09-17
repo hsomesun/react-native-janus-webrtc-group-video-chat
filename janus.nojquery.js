@@ -265,6 +265,7 @@ function Janus(gatewayCallbacks) {
         gatewayCallbacks.error("Invalid gateway url");
         return {};
     }
+    var localstream = null
     var websockets = false;
     var ws = null;
     var wsHandlers = {};
@@ -929,6 +930,7 @@ function Janus(gatewayCallbacks) {
                         muteVideo : function() { return mute(handleId, true, true); },
                         unmuteVideo : function() { return mute(handleId, true, false); },
                         getBitrate : function() { return getBitrate(handleId); },
+                        changeLocalCamera : function() { return changeLocalCamera(handleId); },
                         send : function(callbacks) { sendMessage(handleId, callbacks); },
                         data : function(callbacks) { sendData(handleId, callbacks); },
                         dtmf : function(callbacks) { sendDtmf(handleId, callbacks); },
@@ -1228,7 +1230,45 @@ function Janus(gatewayCallbacks) {
         });
     }
 
+
+
+
     // WebRTC stuff
+    function changeLocalCamera(handleId) {
+        var pluginHandle = pluginHandles[handleId];
+        var config = pluginHandle.webrtcStuff;
+        MediaStreamTrack.getSources(sourceInfos => {
+                    var isFront = true
+                    console.log(sourceInfos);
+                    let videoSourceId;
+                    for (const i = 0; i < sourceInfos.length; i++) {
+                      const sourceInfo = sourceInfos[i];
+                      if(sourceInfo.kind == "video" && sourceInfo.facing == (isFront ? "front" : "back")) {
+                        videoSourceId = sourceInfo.id;
+                      }
+                    }
+                    console.log("videoSourceId:" + videoSourceId)
+                    getUserMedia({
+                      "audio": true,
+                      "video": {
+                        optional: [{sourceId: videoSourceId}]
+                      }
+                    }, function (stream) {
+                      config.pc.removeStream(localstream)
+                      config.pc.removeStream(localstream)
+                      localstream.release()
+                      localstream.release()
+                      localstream = stream;
+                      // pluginHandle.onlocalstream(localstream);
+                      config.myStream = localstream;
+                      config.pc.addStream(localstream);
+                    },
+                    // TODO: add error handling
+                    );
+        });
+
+    }
+
     function streamsDone(handleId, jsep, media, callbacks, stream) {
         var pluginHandle = pluginHandles[handleId];
         if(pluginHandle === null || pluginHandle === undefined ||
@@ -1285,11 +1325,15 @@ function Janus(gatewayCallbacks) {
                 }
             // }
         };
+
+
         if(stream !== null && stream !== undefined) {
             Janus.log('Adding local stream');
             config.pc.addStream(stream);
             pluginHandle.onlocalstream(stream);
+            localstream = stream
         }
+
         config.pc.onaddstream = function(remoteStream) {
             Janus.log("Handling Remote Stream");
             Janus.debug(remoteStream);
@@ -1639,7 +1683,7 @@ function Janus(gatewayCallbacks) {
                 // });
 
                 MediaStreamTrack.getSources(sourceInfos => {
-                    var isFront = true
+                    var isFront = false
                     console.log(sourceInfos);
                     let videoSourceId;
                     for (const i = 0; i < sourceInfos.length; i++) {
