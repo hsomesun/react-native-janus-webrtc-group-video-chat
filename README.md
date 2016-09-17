@@ -1,4 +1,5 @@
 - installtion
+    - https://github.com/oney/react-native-webrtc/blob/master/Documentation/iOSInstallation.md
     - edit .env.example, and rename .env
     - npm start
 

@@ -155,6 +155,11 @@ var Janus = require('./janus.nojquery.js');
                                                     feeds[remoteFeed.rfindex] = null;
                                                     remoteFeed.detach();
                                                 }
+                                                container.setState({info: 'One peer left!'});
+                                                const remoteList = container.state.remoteList;
+                                                console.log(remoteList)
+                                                delete remoteList[leaving]
+                                                container.setState({ remoteList: remoteList });
                                             } else if(msg["unpublished"] !== undefined && msg["unpublished"] !== null) {
                                                 // One of the publishers has unpublished?
                                                 var unpublished = msg["unpublished"];
@@ -331,9 +336,9 @@ function newRemoteFeed(id, display) {
             onremotestream: function(stream) {
                     console.log('onaddstream', stream);
                     container.setState({info: 'One peer join!'});
-
+                    console.log(remoteFeed)
                     const remoteList = container.state.remoteList;
-                    remoteList[remoteFeed.getId()] = stream.toURL();
+                    remoteList[id] = stream.toURL();
                     container.setState({ remoteList: remoteList });
             },
             oncleanup: function() {
@@ -350,28 +355,6 @@ function newRemoteFeed(id, display) {
             }
         });
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -399,16 +382,6 @@ function getLocalStream(isFront, callback) {
       console.log('dddd', stream);
       callback(stream);
     }, logError);
-  });
-}
-
-function join(roomID) {
-  socket.emit('join', roomID, function(socketIds){
-    console.log('join', socketIds);
-    for (const i in socketIds) {
-      const socketId = socketIds[i];
-      createPC(socketId, true);
-    }
   });
 }
 
@@ -498,45 +471,6 @@ function createPC(socketId, isOffer) {
   return pc;
 }
 
-function exchange(data) {
-  const fromId = data.from;
-  let pc;
-  if (fromId in pcPeers) {
-    pc = pcPeers[fromId];
-  } else {
-    pc = createPC(fromId, false);
-  }
-
-  if (data.sdp) {
-    console.log('exchange sdp', data);
-    pc.setRemoteDescription(new RTCSessionDescription(data.sdp), function () {
-      if (pc.remoteDescription.type == "offer")
-        pc.createAnswer(function(desc) {
-          console.log('createAnswer', desc);
-          pc.setLocalDescription(desc, function () {
-            console.log('setLocalDescription', pc.localDescription);
-            socket.emit('exchange', {'to': fromId, 'sdp': pc.localDescription });
-          }, logError);
-        }, logError);
-    }, logError);
-  } else {
-    console.log('exchange candidate', data);
-    pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-  }
-}
-
-function leave(socketId) {
-  console.log('leave', socketId);
-  const pc = pcPeers[socketId];
-  const viewIndex = pc.viewIndex;
-  pc.close();
-  delete pcPeers[socketId];
-
-  const remoteList = container.state.remoteList;
-  delete remoteList[socketId]
-  container.setState({ remoteList: remoteList });
-  container.setState({info: 'One peer leave!'});
-}
 
 socket.on('exchange', function(data){
   exchange(data);
@@ -553,7 +487,7 @@ socket.on('connect', function(data) {
   //   container.setState({status: 'ready', info: 'Please enter or create room ID'});
   // });
     console.log("localstream_janus")
-    localStream = localstream_janus;
+    // localStream = localstream_janus;
     container.setState({selfViewSrc: localstream_janus.toURL()});
     container.setState({status: 'ready', info: 'Please enter or create room ID'});
 
@@ -570,17 +504,6 @@ function mapHash(hash, func) {
     array.push(func(obj, key));
   }
   return array;
-}
-
-function getStats() {
-  const pc = pcPeers[Object.keys(pcPeers)[0]];
-  if (pc.getRemoteStreams()[0] && pc.getRemoteStreams()[0].getAudioTracks()[0]) {
-    const track = pc.getRemoteStreams()[0].getAudioTracks()[0];
-    console.log('track', track);
-    pc.getStats(track, function(report) {
-      console.log('getStats report', report);
-    }, logError);
-  }
 }
 
 let container;
@@ -606,7 +529,7 @@ const RCTWebRTCDemo = React.createClass({
   _press(event) {
     this.refs.roomID.blur();
     this.setState({status: 'connect', info: 'Connecting'});
-    join(this.state.roomID);
+
   },
   _switchVideoType() {
     const isFront = !this.state.isFront;
