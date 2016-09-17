@@ -273,6 +273,7 @@ function Janus(gatewayCallbacks) {
 
     var servers = null, serversIndex = 0;
     var server = gatewayCallbacks.server;
+    var camera_front = gatewayCallbacks.camera_front;
     if(Array.isArray(server)) {
         Janus.log("Multiple servers provided (" + server.length + "), will use the first that works");
         server = null;
@@ -1683,7 +1684,7 @@ function Janus(gatewayCallbacks) {
                 // });
 
                 MediaStreamTrack.getSources(sourceInfos => {
-                    var isFront = false
+                    var isFront = camera_front
                     console.log(sourceInfos);
                     let videoSourceId;
                     for (const i = 0; i < sourceInfos.length; i++) {

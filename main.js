@@ -40,7 +40,7 @@ import {
 
 // console.log("Janus library")
 // console.log(JANUS)
-console.log(Janus)
+// console.log(Janus)
 // console.log(ANOTHER_CONFIG)
 
 import { JANUS } from 'react-native-dotenv'
@@ -62,6 +62,7 @@ var localstream_janus
 
 // $(document).ready(function() {
     // Initialize the library (all console debuggers enabled)
+function janusStart(){
 var Janus = require('./janus.nojquery.js');
     Janus.init({debug: "all", callback: function() {
             if(started)
@@ -71,6 +72,7 @@ var Janus = require('./janus.nojquery.js');
     janus = new Janus(
                 {
                     server: server,
+                    camera_front: container.state.isFront,
                     success: function() {
                         janus.attach(
                             {
@@ -197,10 +199,8 @@ var Janus = require('./janus.nojquery.js');
                                 },
                                 onlocalstream: function(stream) {
                                     localstream_janus = stream;
-
                                     container.setState({selfViewSrc: stream.toURL()});
-                                    container.setState({status: 'ready', info: 'Please enter or create room ID'});
-                                    sfutest.changeLocalCamera()
+
                                 },
                                 onremotestream: function(stream) {
                                     // The publisher stream is sendonly, we don't expect anything here
@@ -339,7 +339,9 @@ function newRemoteFeed(id, display) {
                     container.setState({info: 'One peer join!'});
                     console.log(remoteFeed)
                     const remoteList = container.state.remoteList;
+
                     remoteList[id] = stream.toURL();
+                    remoteNameList[id] = display
                     container.setState({ remoteList: remoteList });
             },
             oncleanup: function() {
@@ -358,145 +360,8 @@ function newRemoteFeed(id, display) {
 }
 
 
-
-const configuration = {"iceServers": [{"url": 'stun.l.google.com:19302'}]};
-
-const pcPeers = {};
-let localStream;
-
-function getLocalStream(isFront, callback) {
-  MediaStreamTrack.getSources(sourceInfos => {
-    console.log(sourceInfos);
-    let videoSourceId;
-    for (const i = 0; i < sourceInfos.length; i++) {
-      const sourceInfo = sourceInfos[i];
-      if(sourceInfo.kind == "video" && sourceInfo.facing == (isFront ? "front" : "back")) {
-        videoSourceId = sourceInfo.id;
-      }
-    }
-    getUserMedia({
-      "audio": true,
-      "video": {
-        optional: [{sourceId: videoSourceId}]
-      }
-    }, function (stream) {
-      console.log('dddd', stream);
-      callback(stream);
-    }, logError);
-  });
 }
 
-function createPC(socketId, isOffer) {
-  const pc = new RTCPeerConnection(configuration);
-  pcPeers[socketId] = pc;
-
-  pc.onicecandidate = function (event) {
-    console.log('onicecandidate', event.candidate);
-    if (event.candidate) {
-      socket.emit('exchange', {'to': socketId, 'candidate': event.candidate });
-    }
-  };
-
-  function createOffer() {
-    pc.createOffer(function(desc) {
-      console.log('createOffer', desc);
-      pc.setLocalDescription(desc, function () {
-        console.log('setLocalDescription', pc.localDescription);
-        socket.emit('exchange', {'to': socketId, 'sdp': pc.localDescription });
-      }, logError);
-    }, logError);
-  }
-
-  pc.onnegotiationneeded = function () {
-    console.log('onnegotiationneeded');
-    if (isOffer) {
-      createOffer();
-    }
-  }
-
-  pc.oniceconnectionstatechange = function(event) {
-    console.log('oniceconnectionstatechange', event.target.iceConnectionState);
-    if (event.target.iceConnectionState === 'completed') {
-      setTimeout(() => {
-        getStats();
-      }, 1000);
-    }
-    if (event.target.iceConnectionState === 'connected') {
-      createDataChannel();
-    }
-  };
-  pc.onsignalingstatechange = function(event) {
-    console.log('onsignalingstatechange', event.target.signalingState);
-  };
-
-  pc.onaddstream = function (event) {
-    console.log('onaddstream', event.stream);
-    container.setState({info: 'One peer join!'});
-
-    const remoteList = container.state.remoteList;
-    remoteList[socketId] = event.stream.toURL();
-    container.setState({ remoteList: remoteList });
-  };
-
-  pc.onremovestream = function (event) {
-    console.log('onremovestream', event.stream);
-  };
-
-  pc.addStream(localStream);
-  function createDataChannel() {
-    if (pc.textDataChannel) {
-      return;
-    }
-    const dataChannel = pc.createDataChannel("text");
-
-    dataChannel.onerror = function (error) {
-      console.log("dataChannel.onerror", error);
-    };
-
-    dataChannel.onmessage = function (event) {
-      console.log("dataChannel.onmessage:", event.data);
-      container.receiveTextData({user: socketId, message: event.data});
-    };
-
-    dataChannel.onopen = function () {
-      console.log('dataChannel.onopen');
-      container.setState({textRoomConnected: true});
-    };
-
-    dataChannel.onclose = function () {
-      console.log("dataChannel.onclose");
-    };
-
-    pc.textDataChannel = dataChannel;
-  }
-  return pc;
-}
-
-
-socket.on('exchange', function(data){
-  exchange(data);
-});
-socket.on('leave', function(socketId){
-  leave(socketId);
-});
-
-socket.on('connect', function(data) {
-  console.log('connect');
-  // getLocalStream(true, function(stream) {
-  //   localStream = stream;
-  //   container.setState({selfViewSrc: stream.toURL()});
-  //   container.setState({status: 'ready', info: 'Please enter or create room ID'});
-  // });
-    console.log("localstream_janus")
-    // localStream = localstream_janus;
-    container.setState({selfViewSrc: localstream_janus.toURL()});
-    container.setState({status: 'ready', info: 'Please enter or create room ID'});
-
-});
-
-function logError(error) {
-  console.log("logError", error);
-}
 
 function mapHash(hash, func) {
   const array = [];
@@ -508,6 +373,8 @@ function mapHash(hash, func) {
 }
 
 let container;
+let remoteNameList=[];
+
 
 const RCTWebRTCDemo = React.createClass({
   getInitialState: function() {
@@ -526,31 +393,16 @@ const RCTWebRTCDemo = React.createClass({
   },
   componentDidMount: function() {
     container = this;
+    container.setState({status: 'ready', info: 'Janus Gateway Video Room '});
   },
   _press(event) {
-    this.refs.roomID.blur();
+    janusStart()
     this.setState({status: 'connect', info: 'Connecting'});
 
   },
   _switchVideoType() {
     const isFront = !this.state.isFront;
     this.setState({isFront});
-    getLocalStream(isFront, function(stream) {
-      if (localStream) {
-        for (const id in pcPeers) {
-          const pc = pcPeers[id];
-          pc && pc.removeStream(localStream);
-        }
-        localStream.release();
-      }
-      localStream = stream;
-      container.setState({selfViewSrc: stream.toURL()});
-
-      for (const id in pcPeers) {
-        const pc = pcPeers[id];
-        pc && pc.addStream(localStream);
-      }
-    });
   },
   receiveTextData(data) {
     const textRoomData = this.state.textRoomData.slice();
@@ -595,6 +447,7 @@ const RCTWebRTCDemo = React.createClass({
           {this.state.info}
         </Text>
         {this.state.textRoomConnected && this._renderTextRoom()}
+        { this.state.status == 'ready' ?
         <View style={{flexDirection: 'row'}}>
           <Text>
             {this.state.isFront ? "Use front camera" : "Use back camera"}
@@ -604,26 +457,31 @@ const RCTWebRTCDemo = React.createClass({
             onPress={this._switchVideoType}>
             <Text>Switch camera</Text>
           </TouchableHighlight>
-        </View>
+        </View> : null
+        }
         { this.state.status == 'ready' ?
-          (<View>
-            <TextInput
-              ref='roomID'
-              autoCorrect={false}
-              style={{width: 200, height: 40, borderColor: 'gray', borderWidth: 1}}
-              onChangeText={(text) => this.setState({roomID: text})}
-              value={this.state.roomID}
-            />
+          (<View >
             <TouchableHighlight
               onPress={this._press}>
-              <Text>Enter room</Text>
+              <Text style={{fontSize: 50}}>Enter room</Text>
             </TouchableHighlight>
           </View>) : null
         }
-        <RTCView streamURL={this.state.selfViewSrc} style={styles.selfView}/>
+
+        { this.state.status != 'ready' ?
+        (<View >
+            <Text>You</Text>
+            <RTCView streamURL={this.state.selfViewSrc} style={styles.selfView}/>
+        </View>) : null
+        }
         {
           mapHash(this.state.remoteList, function(remote, index) {
-            return <RTCView key={index} streamURL={remote} style={styles.remoteView}/>
+            return  (
+                <View  key={index} style={styles.remoteView}>
+                <Text>{remoteNameList[index]}</Text>
+                <RTCView key={index} streamURL={remote} style={styles.remoteView}/>
+                </View>
+                )
           })
         }
       </View>
