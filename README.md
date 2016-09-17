@@ -9,11 +9,11 @@
     - plugin
         - ○video room (ios)
             - note
-                - Switch Streaming your camera from front side to back, vice versa, is deleted in oney/react-native-webrtc-demo, because, Janus is not supporting config.pc.removeStream(localstream). My sample program is selecting your prefered camera in advance(push Switch camera).
+                - Switch Streaming your camera from front side to back, vice versa, on demand is deleted from oney/react-native-webrtc-demo, because Janus do not support config.pc.removeStream(localstream). My sample program is selecting your preferred camera in advance(push Switch camera).
         - ✖︎streaming
         - ✖︎audio bridge
 
-- Encounterd bug list (probably, just for me)
+- Encountered bug list (probably, just for me)
 add include header in RCTWebRTC/RTCVideoViewManager.m
 ```
 #import <objc/runtime.h>
