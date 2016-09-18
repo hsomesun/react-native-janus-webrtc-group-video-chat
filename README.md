@@ -5,13 +5,14 @@
 
 - Design
     - I use pure janus.js library because of tiredness. If you like es6 synax, and more clean library, use https://github.com/ndarilek/node-janus. This works well.
-- ToDo
-    - plugin
-        - ○video room (ios,android)
-            - note
-                - Switch Streaming your camera from front side to back, vice versa, on demand is deleted from oney/react-native-webrtc-demo, because Janus do not support config.pc.removeStream(localstream). My sample program is selecting your preferred camera in advance(push Switch camera).
-        - ✖︎streaming
-        - ✖︎audio bridge
+
+- plugin
+    - ○video room (ios,android)
+        - note
+            - Switch Streaming your camera from front side to back, vice versa, on demand is deleted from oney/react-native-webrtc-demo, because Janus do not support config.pc.removeStream(localstream). My sample program is selecting your preferred camera in advance(push Switch camera).
+            - device test list
+                - ios: ○vp8 ○vp9 ✖︎h264
+                - android: ○vp8 ✖vp9 ✖︎h264
 
 - Encountered bug lists (probably, just for me)
 
