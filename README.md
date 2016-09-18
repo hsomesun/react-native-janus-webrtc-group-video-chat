@@ -1,19 +1,20 @@
 - Installtion
     - https://github.com/oney/react-native-webrtc/blob/master/Documentation/iOSInstallation.md
-    - edit .env.example, and rename .env. you specify your janus server. iOS don't allow you to use insecure https. So, you need to deploy trusted https server. Regarding signaling way, http is only supported at now.
+    - Edit .env.example, and rename .env. You specify your janus server. iOS don't allow you to use insecure https. So, You need to deploy trusted https server. Regarding signaling way, http is only supported at now.
     - After building xcode proj, npm start
 
 - Design
-    - I didn't use es6 syntax in janus.js library because I don't have much time to do such a job. If you like es6 synax, use https://github.com/ndarilek/node-janus. This works well.
+    - I use pure janus.js library because of tiredness. If you like es6 synax, and more clean library, use https://github.com/ndarilek/node-janus. This works well.
 - ToDo
     - plugin
-        - ○video room (ios)
+        - ○video room (ios,android)
             - note
                 - Switch Streaming your camera from front side to back, vice versa, on demand is deleted from oney/react-native-webrtc-demo, because Janus do not support config.pc.removeStream(localstream). My sample program is selecting your preferred camera in advance(push Switch camera).
         - ✖︎streaming
         - ✖︎audio bridge
 
-- Encountered bug list (probably, just for me)
+- Encountered bug lists (probably, just for me)
+
 add include header in RCTWebRTC/RTCVideoViewManager.m
 ```
 #import <objc/runtime.h>
