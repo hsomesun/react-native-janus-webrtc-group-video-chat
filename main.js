@@ -11,9 +11,6 @@ import {
   ListView,
 } from 'react-native';
 
-import io from 'socket.io-client/socket.io';
-
-const socket = io.connect('https://react-native-webrtc.herokuapp.com', {transports: ['websocket']});
 
 import {
   RTCPeerConnection,
@@ -24,24 +21,6 @@ import {
   MediaStreamTrack,
   getUserMedia,
 } from 'react-native-webrtc';
-
-
-
-
-
-
-
-// ApiClient.init(API_KEY, ANOTHER_CONFIG)
-
-// import Config from 'react-native-config'
-
-// console.log(Config.JANUS)  // 'https://myapi.com'
-// Config.GOOGLE_MAPS_API_KEY  // 'abcdefgh'
-
-// console.log("Janus library")
-// console.log(JANUS)
-// console.log(Janus)
-// console.log(ANOTHER_CONFIG)
 
 import { JANUS } from 'react-native-dotenv'
 var server = JANUS
