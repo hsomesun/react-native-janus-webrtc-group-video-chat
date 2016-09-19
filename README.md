@@ -11,6 +11,10 @@
         - note
             - Switch Streaming your camera from front side to back, vice versa, on demand is deleted from oney/react-native-webrtc-demo, because Janus do not support config.pc.removeStream(localstream). My sample program is selecting your preferred camera in advance(push Switch camera).
             - device test list
+                - janus
+                    - commit 79c65e8f12a6354687ee6793373e0b008e52d462
+                - chrome
+                    - M52 stable
                 - ios: ○vp8 ○vp9 ✖︎h264
                 - android: ○vp8 ✖vp9 ✖︎h264
 
