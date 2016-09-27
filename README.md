@@ -14,11 +14,11 @@
                 - janus
                     - commit 79c65e8f12a6354687ee6793373e0b008e52d462
                 - chrome
-                    - M52 stable
+                    - M52 stable? (see package.json)
                 - ios: ○vp8 ○vp9 ✖︎h264
                 - android: ○vp8 ✖vp9 ✖︎h264
 
-- Encountered bug lists (probably, just for me)
+- Encountered bug lists (probably, useful just for me)
 
 add include header in RCTWebRTC/RTCVideoViewManager.m
 ```
